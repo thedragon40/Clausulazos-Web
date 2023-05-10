@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Notificaciones</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="icon.jpg" />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      .title {
+        text-align: center;
+      }
+
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background-color: #1d1e22;
+        text-align: center;
+      }
+
+      .container {
+        max-width: 600px;
+        margin: 30px auto;
+        padding: 20px;
+        text-align: center;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      h1 {
+        font-size: 32px;
+        font-weight: bold;
+        margin: 0 0 20px;
+        color: #fdb801;
+      }
+
+      .notification {
+        background-color: #e8a100;
+        color: #fff;
+        font-weight: bold;
+        padding: 20px;
+        border-radius: 10px;
+        margin: 20px 0;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      }
+
+      .countdown-wrapper {
+        display: inline-block;
+        margin-top: 30px;
+        cursor: pointer;
+      }
+
+      .countdown {
+        font-size: 64px;
+        font-weight: bold;
+        color: #fdb801;
+        padding: 40px;
+        margin: 0;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      }
+
+      .countdown-label {
+        font-size: 20px;
+        color: #3b3d40;
+      }
+
+      .notification-message {
+        font-size: 24px;
+        line-height: 1.5;
+        margin: 0 0 20px;
+        color: #3b3d40;
+      }
+
+      .notification-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background-color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 20px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      }
+
+      .notification-icon i {
+        font-size: 36px;
+        color: #e8a100;
+      }
+
+      .contador {
+        display: inline-block;
+        background-color: #3b3d40;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        margin-top: 30px;
+        padding: 20px;
+        font-size: 32px;
+        font-weight: bold;
+        color: #fdb801;
+      }
+      .contador .titulo {
+        font-size: 18px;
+        color: #e8a100;
+        margin-top: 10px;
+        text-transform: uppercase;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Cláusulazos</h1>
+    <p id="timer"></p>
+    <div class="contador">
+      <div class="titulo">Tiempo restante:</div>
+      <div class="numero"><span id="countdown"></span></div>
+    </div>
+    <script>
+      // Solicitar permisos de notificación
+      if (Notification.permission !== "granted") {
+        Notification.requestPermission();
+      }
+
+      // Función para enviar notificaciones
+      function sendNotification(title, message) {
+        if (Notification.permission !== "granted") {
+          Notification.requestPermission();
+        } else {
+          var options = {
+            body: message,
+            icon: "icon.jpg",
+          };
+          var notification = new Notification(title, options);
+          setTimeout(notification.close.bind(notification), 5000);
+        }
+      }
+
+      // Función para calcular el tiempo restante hasta la próxima notificación
+      function calculateCountdown() {
+        const now = new Date();
+        const targetTime = 16;
+
+        // Obtener la fecha y hora del próximo viernes y lunes a las 16:00
+        let nextFriday = new Date(now);
+        let nextMonday = new Date(now);
+        nextFriday.setDate(now.getDate() + ((5 - now.getDay() + 7) % 7));
+        nextMonday.setDate(now.getDate() + ((1 - now.getDay() + 7) % 7));
+
+        nextFriday.setHours(targetTime, 0, 0, 0);
+        nextMonday.setHours(targetTime, 0, 0, 0);
+
+        // Calcular el tiempo restante hasta la próxima notificación
+        let countdown, message;
+        if (now.getDay() >= 1 && now.getDay() <= 4) {
+          countdown = (nextFriday.getTime() - now.getTime()) / 1000;
+          message =
+            "🚨 Queda 1 hora para que acabe el plazo de los cláusulazos.";
+        } else {
+          countdown = (nextMonday.getTime() - now.getTime()) / 1000;
+          message =
+            "🚨 Queda 1 hora para que empiece el plazo de los cláusulazos.";
+        }
+
+        // Convertir el tiempo restante a días, horas, minutos y segundos
+        const days = Math.floor(countdown / (24 * 60 * 60));
+        const hours = Math.floor((countdown % (24 * 60 * 60)) / (60 * 60));
+        const minutes = Math.floor((countdown % (60 * 60)) / 60);
+        const seconds = Math.floor(countdown % 60);
+
+        // Construir el texto del contador en el formato deseado
+        let countdownText = "";
+        if (days > 0) {
+          countdownText += days + "d ";
+        }
+        countdownText += hours + "h " + minutes + "m " + seconds + "s";
+
+        // Actualizar el texto del contador
+        document.getElementById("countdown").textContent = countdownText;
+
+        // Enviar aviso previo una hora antes de la notificación
+        if (hours === 1 && minutes === 0 && seconds === 0) {
+          sendNotification("Recordatorio", message);
+        }
+
+        // Enviar la notificación a las 16:00
+        if (hours === 0 && minutes === 0 && seconds === 0) {
+          if (now.getDay() >= 1 && now.getDay() <= 4) {
+            message = "🚨 El plazo de los cláusulazos ha acabado.";
+          } else {
+            message = "🚨 El plazo de los cláusulazos ha comenzado.";
+          }
+          sendNotification("Notificación", message);
+          calculateCountdown();
+        }
+      }
+
+      // Actualizar el contador cada segundo
+      setInterval(calculateCountdown, 1000);
+      // Calcular el tiempo restante al cargar la página
+      calculateCountdown();
+    </script>
+  </body>
+</html>
